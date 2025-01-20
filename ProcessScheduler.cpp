@@ -1,6 +1,6 @@
-// Operating System Assignment : Process Scheduler
+w// Operating System Assignment : Process Scheduler
 // Member 1: Muhammad Luqman Irfan bin Ahmad Kamal Peong
-// Member 2:
+// Member 2: Wisyal Faridz Aimizil bin Mohd Fauzi
 // Member 3:
 // Member 4:
 
@@ -24,6 +24,7 @@ vector<Process> getProcesses();
 void printGanttChart(vector<pair<int, int>> ganttChart);
 void printResults(std::vector<Process> processes);
 void roundRobin(std::vector<Process>& processes, int quantum);
+void nonPreemptivePriority(std::vector<Process>& processes);
 // put your function definition here here guys.
 
 int main(){
@@ -42,7 +43,7 @@ int main(){
         }
         else if(x == 2){
             vector<Process> processList = getProcesses();
-            // TODO
+            nonPreemptivePriority(processList);
         }
         else if(x == 3){
             vector<Process> processList = getProcesses();
@@ -200,7 +201,54 @@ void roundRobin(std::vector<Process>& processes, int quantum) {
     // Printing gantt chart and results.
     printGanttChart(ganttChart);
     printResults(processes);
-
 }
 
 // Implementation of your functions
+
+
+// Non-Preemptive Priority Scheduling
+void nonPreemptivePriority(std::vector<Process>& processes) {
+    int time = 0;
+    int n = processes.size(); // Stores the no. of processes
+    int completed = 0; // Tracks the amount of processes that have finished executing.
+    std::vector<pair<int, int>> ganttChart;
+
+    // Sort the processes based on arrival time
+    sort(processes.begin(), processes.end(), [](const Process& a, const Process& b) {
+        return a.arrivalTime < b.arrivalTime;
+    });
+
+    // This section iterates through the processes and selecs the one with the highest priority
+    // highest priority in this case means smallest priority value.
+    while (completed < n) {
+        int selectedProcess = -1;
+        for (int i = 0; i < n; ++i) {
+            if (processes[i].arrivalTime <= time && processes[i].remainingTime > 0) {
+                if (selectedProcess == -1 || processes[i].priority < processes[selectedProcess].priority) {
+                    selectedProcess = i;
+                }
+            }
+        }
+
+        // We can execute completely since non-preemptive scheduling
+        
+        if (selectedProcess != -1) {
+            time += processes[selectedProcess].burstTime; // incremented by the burst time of a process
+            processes[selectedProcess].remainingTime = 0; // this indicates that a process is finished executing
+            processes[selectedProcess].finishedTime = time;
+            processes[selectedProcess].turnaroundTime = time - processes[selectedProcess].arrivalTime;
+            processes[selectedProcess].waitingTime = processes[selectedProcess].turnaroundTime - processes[selectedProcess].burstTime;
+
+            // Add to Gantt Chart
+            ganttChart.emplace_back(processes[selectedProcess].id, processes[selectedProcess].burstTime);
+            completed++;
+        } else {
+            // Increments time if no processes are available.
+            time++;
+        }
+    }
+
+    // Print Gantt chart and results
+    printGanttChart(ganttChart);
+    printResults(processes);
+}
