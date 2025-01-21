@@ -1,16 +1,16 @@
-w// Operating System Assignment : Process Scheduler
+// Operating System Assignment : Process Scheduler
 // Member 1: Muhammad Luqman Irfan bin Ahmad Kamal Peong
 // Member 2: Wisyal Faridz Aimizil bin Mohd Fauzi
-// Member 3:
+// Member 3: Ameer Harith Bin Mohd Hazali
 // Member 4:
-
 #include <iostream>
 #include <queue>
 #include <vector>
 #include <algorithm>
 using namespace std;
 // Simple structure to hold all the data of the process.
-struct Process {
+struct Process
+{
     int id;
     int priority;
     int burstTime;
@@ -23,55 +23,62 @@ struct Process {
 vector<Process> getProcesses();
 void printGanttChart(vector<pair<int, int>> ganttChart);
 void printResults(std::vector<Process> processes);
-void roundRobin(std::vector<Process>& processes, int quantum);
-void nonPreemptivePriority(std::vector<Process>& processes);
+void roundRobin(std::vector<Process> &processes, int quantum);
+void shortestJobFirst(std::vector<Process> &processes);
+void nonPreemptivePriority(std::vector<Process> &processes);
 // put your function definition here here guys.
-
-int main(){
+int main()
+{
     cout << "Welcome to Process Scheduler simulator\n";
-    while(true){
+    while (true)
+    {
         cout << endl;
-        cout << "Choose a process scheduler\n 1.Round Robin\n 2.Non-Preemptive Priority\n 3.SRT\n 4.[Insert]\n 5.Exit\n";
+        cout << "Choose a process scheduler\n 1.Round Robin\n 2.Non-Preemptive Priority\n 3.SRT\n 4.SJF\n 5.Exit\n";
         int x;
         cin >> x;
-        if(x == 1){
+        if (x == 1)
+        {
             vector<Process> processList = getProcesses();
             int quantum;
             cout << "Enter time quantum: ";
             cin >> quantum;
             roundRobin(processList, quantum);
         }
-        else if(x == 2){
+        else if (x == 2)
+        {
             vector<Process> processList = getProcesses();
             nonPreemptivePriority(processList);
+            // TODO
         }
-        else if(x == 3){
+        else if (x == 3)
+        {
             vector<Process> processList = getProcesses();
             // TODO
         }
-        else if(x == 4){
+        else if (x == 4)
+        {
             vector<Process> processList = getProcesses();
+            shortestJobFirst(processList);
             // TODO
         }
-        else{
+        else
+        {
             cout << "\nExiting Program";
             break;
         }
-
     }
 }
-
 // Function to get the arrival times and burst times of n number of processes
-vector<Process> getProcesses(){
+vector<Process> getProcesses()
+{
     int n;
     cout << "Enter the number of processes: ";
     cin >> n;
-
     vector<Process> processes(n);
-
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < n; ++i)
+    {
         processes[i].id = i;
-        cout << "Enter arrival time for Process " << i<< ": ";
+        cout << "Enter arrival time for Process " << i << ": ";
         cin >> processes[i].arrivalTime;
         cout << "Enter burst time for Process " << i << ": ";
         cin >> processes[i].burstTime;
@@ -81,32 +88,37 @@ vector<Process> getProcesses(){
         cout << endl;
     }
     return processes;
-} 
-
+}
 // Function to print out the gantt chart.
-void printGanttChart(vector<pair<int, int>> ganttChart){
+void printGanttChart(vector<pair<int, int>> ganttChart)
+{
     cout << "\n";
     // Print the Gantt chart
     cout << "\nGantt Chart:\n";
     cout << "|";
-    for (const auto& entry : ganttChart) {
+    for (const auto &entry : ganttChart)
+    {
         cout << " P" << entry.first << " |";
     }
     cout << "\n";
-
     int currentTime = 0;
     cout << currentTime;
-    for (const auto& entry : ganttChart) {
+    for (const auto &entry : ganttChart)
+    {
         currentTime += entry.second;
-        if(currentTime >= 10){
+        if (currentTime >= 10)
+        {
             cout << "   " << currentTime;
-        }else{
+        }
+        else
+        {
             cout << "    " << currentTime;
         }
     }
 }
 // Function to print out the result table along with the totals and averages.
-void printResults(std::vector<Process> processes){
+void printResults(std::vector<Process> processes)
+{
     cout << "\n";
     int n = processes.size();
     // Declared as doubles since they will be divided for the averages later.
@@ -114,86 +126,90 @@ void printResults(std::vector<Process> processes){
     double totalWaitingTime = 0;
     // Print the results and calculate the totals
     cout << "Process\t  Arrival Time\t   Burst Time     Finished Time  Turnaround Time   Waiting Time\n";
-    for (const auto& process : processes) {
+    for (const auto &process : processes)
+    {
         cout << "P" << process.id << "\t\t" << process.arrivalTime << "\t\t"
-                  << process.burstTime << "\t\t" << process.finishedTime << "\t\t" 
-                  << process.turnaroundTime << "\t\t" << process.waitingTime << "\n";
+             << process.burstTime << "\t\t" << process.finishedTime << "\t\t"
+             << process.turnaroundTime << "\t\t" << process.waitingTime << "\n";
         totalTurnaroundTime += process.turnaroundTime;
         totalWaitingTime += process.waitingTime;
     }
     // Print totals and averages
     cout << "Total Turnaround Time   : " << totalTurnaroundTime << endl;
-    cout << "Average Turnaround Time : " << totalTurnaroundTime/n << endl;
+    cout << "Average Turnaround Time : " << totalTurnaroundTime / n << endl;
     cout << "Total Waiting Time      : " << totalWaitingTime << endl;
-    cout << "Average Waiting Time    : " << totalWaitingTime/n << endl;
+    cout << "Average Waiting Time    : " << totalWaitingTime / n << endl;
 }
-
 // Function that implements the calculations of the round robin algorithm
-void roundRobin(std::vector<Process>& processes, int quantum) {
+void roundRobin(std::vector<Process> &processes, int quantum)
+{
     // Queue to keep track of which processes go next
     std::queue<int> readyQueue;
     int time = 0;
     int n = processes.size();
     int completed = 0;
-
     // Sort processes by arrival time
-    sort(processes.begin(), processes.end(), [](const Process& a, const Process& b) {
+    sort(processes.begin(), processes.end(), [](const Process &a, const Process &b)
+         {
         if (a.arrivalTime == b.arrivalTime) {
             return a.priority < b.priority; // Break ties by priority
         }
-        return a.arrivalTime < b.arrivalTime;
-    });
-
+        return a.arrivalTime < b.arrivalTime; });
     // Vector to track if a process is added to the queue
     vector<bool> addedToQueue(n, false);
-
     // Vector to store the Gantt chart (process ID, execution time)
     vector<pair<int, int>> ganttChart;
-
-    while (completed < n) {
-        // Add processes to the ready queue that have arrived by the current time 
-        for (int i = 0; i < n; ++i) {
-            if (!addedToQueue[i] && processes[i].arrivalTime <= time) {
+    while (completed < n)
+    {
+        // Add processes to the ready queue that have arrived by the current time
+        for (int i = 0; i < n; ++i)
+        {
+            if (!addedToQueue[i] && processes[i].arrivalTime <= time)
+            {
                 readyQueue.push(i);
                 addedToQueue[i] = true;
             }
         }
-
-        if (!readyQueue.empty()) {
+        if (!readyQueue.empty())
+        {
             int index = readyQueue.front();
             readyQueue.pop();
-
             // Execute the process for the time quantum or its remaining time
             int executionTime = std::min(quantum, processes[index].remainingTime);
             processes[index].remainingTime -= executionTime;
             ganttChart.emplace_back(processes[index].id, executionTime); // Add to Gantt chart
             time += executionTime;
-
             // Add processes to the queue that arrived during execution
             // Since this done before considering whether the current process should be re-add it will always priorities processes that have never ran before
-            for (int i = 0; i < n; ++i) {
-                if (!addedToQueue[i] && processes[i].arrivalTime <= time) {
+            for (int i = 0; i < n; ++i)
+            {
+                if (!addedToQueue[i] && processes[i].arrivalTime <= time)
+                {
                     readyQueue.push(i);
                     addedToQueue[i] = true;
                 }
             }
-
             // If the process still has remaining time, re-add it to the queue
-            if (processes[index].remainingTime > 0) {
+            if (processes[index].remainingTime > 0)
+            {
                 readyQueue.push(index);
-            } else {
+            }
+            else
+            {
                 // Process completed, get finished time, calculates turnaround time and waiting time.
                 completed++;
                 processes[index].finishedTime = time;
                 processes[index].turnaroundTime = time - processes[index].arrivalTime;
                 processes[index].waitingTime = processes[index].turnaroundTime - processes[index].burstTime;
-
                 // Ensure no negative waiting time
-                if (processes[index].waitingTime < 0) {
+                if (processes[index].waitingTime < 0)
+                {
                     processes[index].waitingTime = 0;
                 }
             }
-        } else {
+        }
+        else
+        {
             // If no process is ready continue until a process is acquired.
             time++;
         }
@@ -203,52 +219,114 @@ void roundRobin(std::vector<Process>& processes, int quantum) {
     printResults(processes);
 }
 
-// Implementation of your functions
-
-
 // Non-Preemptive Priority Scheduling
-void nonPreemptivePriority(std::vector<Process>& processes) {
+void nonPreemptivePriority(std::vector<Process> &processes)
+{
     int time = 0;
     int n = processes.size(); // Stores the no. of processes
-    int completed = 0; // Tracks the amount of processes that have finished executing.
+    int completed = 0;        // Tracks the amount of processes that have finished executing.
     std::vector<pair<int, int>> ganttChart;
-
     // Sort the processes based on arrival time
-    sort(processes.begin(), processes.end(), [](const Process& a, const Process& b) {
-        return a.arrivalTime < b.arrivalTime;
-    });
-
+    sort(processes.begin(), processes.end(), [](const Process &a, const Process &b)
+         { return a.arrivalTime < b.arrivalTime; });
     // This section iterates through the processes and selecs the one with the highest priority
     // highest priority in this case means smallest priority value.
-    while (completed < n) {
+    while (completed < n)
+    {
         int selectedProcess = -1;
-        for (int i = 0; i < n; ++i) {
-            if (processes[i].arrivalTime <= time && processes[i].remainingTime > 0) {
-                if (selectedProcess == -1 || processes[i].priority < processes[selectedProcess].priority) {
+        for (int i = 0; i < n; ++i)
+        {
+            if (processes[i].arrivalTime <= time && processes[i].remainingTime > 0)
+            {
+                if (selectedProcess == -1 || processes[i].priority < processes[selectedProcess].priority)
+                {
                     selectedProcess = i;
                 }
             }
         }
-
         // We can execute completely since non-preemptive scheduling
-        
-        if (selectedProcess != -1) {
+
+        if (selectedProcess != -1)
+        {
             time += processes[selectedProcess].burstTime; // incremented by the burst time of a process
             processes[selectedProcess].remainingTime = 0; // this indicates that a process is finished executing
             processes[selectedProcess].finishedTime = time;
             processes[selectedProcess].turnaroundTime = time - processes[selectedProcess].arrivalTime;
             processes[selectedProcess].waitingTime = processes[selectedProcess].turnaroundTime - processes[selectedProcess].burstTime;
-
             // Add to Gantt Chart
             ganttChart.emplace_back(processes[selectedProcess].id, processes[selectedProcess].burstTime);
             completed++;
-        } else {
+        }
+        else
+        {
             // Increments time if no processes are available.
             time++;
         }
     }
-
     // Print Gantt chart and results
+    printGanttChart(ganttChart);
+    printResults(processes);
+}
+
+void shortestJobFirst(std::vector<Process> &processes)
+{
+    int n = processes.size();
+    int time = 0;
+    int completed = 0;
+
+    // Sort processes by arrival time
+    sort(processes.begin(), processes.end(), [](const Process &a, const Process &b)
+         { return a.arrivalTime < b.arrivalTime; });
+
+    // Vector to store the Gantt chart (process ID, execution time)
+    vector<pair<int, int>> ganttChart;
+
+    while (completed < n)
+    {
+        // Find the process with the shortest burst time that has arrived
+        int index = -1;
+        int minBurstTime = INT_MAX;
+
+        for (int i = 0; i < n; ++i)
+        {
+            if (processes[i].arrivalTime <= time && processes[i].remainingTime > 0)
+            {
+                if (processes[i].burstTime < minBurstTime)
+                {
+                    minBurstTime = processes[i].burstTime;
+                    index = i;
+                }
+            }
+        }
+
+        if (index != -1)
+        {
+            // Execute the process
+            ganttChart.emplace_back(processes[index].id, processes[index].burstTime);
+            time += processes[index].burstTime;
+
+            // Update process details
+            processes[index].remainingTime = 0;
+            processes[index].finishedTime = time;
+            processes[index].turnaroundTime = processes[index].finishedTime - processes[index].arrivalTime;
+            processes[index].waitingTime = processes[index].turnaroundTime - processes[index].burstTime;
+
+            // Ensure no negative waiting time
+            if (processes[index].waitingTime < 0)
+            {
+                processes[index].waitingTime = 0;
+            }
+
+            completed++;
+        }
+        else
+        {
+            // If no process is ready, increment time
+            time++;
+        }
+    }
+
+    // Printing gantt chart and results.
     printGanttChart(ganttChart);
     printResults(processes);
 }
