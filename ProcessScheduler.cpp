@@ -24,7 +24,7 @@ vector<Process> getProcesses();
 void printGanttChart(vector<pair<int, int>> ganttChart);
 void printResults(std::vector<Process> processes);
 void roundRobin(std::vector<Process> &processes, int quantum);
-void shortestJobFirst(std::vector<Process> &processes);
+void nonshortestJobFirst(std::vector<Process> &processes);
 void nonPreemptivePriority(std::vector<Process> &processes);
 // put your function definition here here guys.
 int main()
@@ -58,7 +58,7 @@ int main()
         else if (x == 4)
         {
             vector<Process> processList = getProcesses();
-            shortestJobFirst(processList);
+            nonshortestJobFirst(processList);
             // TODO
         }
         else
@@ -268,7 +268,7 @@ void nonPreemptivePriority(std::vector<Process> &processes)
     printResults(processes);
 }
 
-void shortestJobFirst(std::vector<Process> &processes)
+void nonshortestJobFirst(std::vector<Process> &processes)
 {
     int n = processes.size();
     int time = 0;
