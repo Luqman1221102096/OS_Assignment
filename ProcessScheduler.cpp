@@ -272,34 +272,54 @@ void nonPreemptivePriority(std::vector<Process> &processes)
 void shortestRemainingTime(std::vector<Process> &processes)
 {
     int n = processes.size();
-    // size
     int time = 0;
-    // time
     int completed = 0;
+
+    // Sort processes by arrival time
+    sort(processes.begin(), processes.end(), [](const Process &a, const Process &b)
+         { return a.arrivalTime < b.arrivalTime; });
+
+    // Vector to store the Gantt chart (process ID, execution time)
     vector<pair<int, int>> ganttChart;
-    // gantt chart example process name time
-    while (completed < n) // if not completed
+    int currentProcess = -1;  // Tracks the currently executing process
+    int processStartTime = 0; // Start time for the current process
+
+    while (completed < n)
     {
         int shortestRemainingIndex = -1;
         int minRemainingTime = INT_MAX;
-        for (int i = 0; i < n; ++i) // loop
+
+        // Find the process with the shortest remaining time that has arrived
+        for (int i = 0; i < n; ++i)
         {
             if (processes[i].arrivalTime <= time && processes[i].remainingTime > 0)
-            { // if arrival time is less than time and process remaining time more than 0
+            {
                 if (processes[i].remainingTime < minRemainingTime)
-                { // and if process remaining time is less than minimum remaining time
+                {
                     minRemainingTime = processes[i].remainingTime;
-                    // minimum remaining time = process remaining time
                     shortestRemainingIndex = i;
-                    // SRT index
                 }
             }
-        } // loop ends
-        if (shortestRemainingIndex != -1) // if SRT index is not equal -!(initialised)
+        }
+
+        if (shortestRemainingIndex != -1)
         {
-            ganttChart.emplace_back(processes[shortestRemainingIndex].id, 1);
+            // If the process changes, update the Gantt chart
+            if (currentProcess != shortestRemainingIndex)
+            {
+                if (currentProcess != -1)
+                {
+                    ganttChart.emplace_back(currentProcess, time - processStartTime);
+                }
+                currentProcess = shortestRemainingIndex;
+                processStartTime = time; // Update start time for the new process
+            }
+
+            // Execute the process for 1 unit of time
             processes[shortestRemainingIndex].remainingTime--;
             time++;
+
+            // If the process finishes, update its details
             if (processes[shortestRemainingIndex].remainingTime == 0)
             {
                 completed++;
@@ -310,9 +330,23 @@ void shortestRemainingTime(std::vector<Process> &processes)
         }
         else
         {
+            // If no process is ready, increment time
+            if (currentProcess != -1)
+            {
+                ganttChart.emplace_back(currentProcess, time - processStartTime);
+                currentProcess = -1;
+            }
             time++;
         }
     }
+
+    // Add the last process to the Gantt chart
+    if (currentProcess != -1)
+    {
+        ganttChart.emplace_back(currentProcess, time - processStartTime);
+    }
+
+    // Print the Gantt chart and results
     printGanttChart(ganttChart);
     printResults(processes);
 }
