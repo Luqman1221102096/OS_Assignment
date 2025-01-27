@@ -27,19 +27,27 @@ void roundRobin(std::vector<Process> &processes, int quantum);
 void nonshortestJobFirst(std::vector<Process> &processes);
 void nonPreemptivePriority(std::vector<Process> &processes);
 void shortestRemainingTime(std::vector<Process> &processes);
+bool usePrevious(std::vector<Process> &processes);
 // put your function definition here here guys.
 int main()
 {
+    vector<Process> PastprocessList; 
     cout << "Welcome to Process Scheduler simulator\n";
     while (true)
-    {
+    { 
         cout << endl;
         cout << "Choose a process scheduler\n 1.Round Robin\n 2.Non-Preemptive Priority\n 3.SRT\n 4.SJF\n 5.Exit\n";
         int x;
         cin >> x;
         if (x == 1)
         {
-            vector<Process> processList = getProcesses();
+            vector<Process> processList;
+            if(usePrevious(PastprocessList)){
+                processList = PastprocessList;
+            }else{
+                processList = getProcesses();
+                PastprocessList = processList;
+            }
             int quantum;
             cout << "Enter time quantum: ";
             cin >> quantum;
@@ -47,19 +55,37 @@ int main()
         }
         else if (x == 2)
         {
-            vector<Process> processList = getProcesses();
+            vector<Process> processList;
+            if(usePrevious(PastprocessList)){
+                processList = PastprocessList;
+            }else{
+                processList = getProcesses();
+                PastprocessList = processList;
+            }
             nonPreemptivePriority(processList);
             // TODO
         }
         else if (x == 3)
         {
-            vector<Process> processList = getProcesses();
+            vector<Process> processList;
+            if(usePrevious(PastprocessList)){
+                processList = PastprocessList;
+            }else{
+                processList = getProcesses();
+                PastprocessList = processList;
+            }
             shortestRemainingTime(processList);
             // TODO
         }
         else if (x == 4)
         {
-            vector<Process> processList = getProcesses();
+            vector<Process> processList;
+            if(usePrevious(PastprocessList)){
+                processList = PastprocessList;
+            }else{
+                processList = getProcesses();
+                PastprocessList = processList;
+            }
             nonshortestJobFirst(processList);
             // TODO
         }
@@ -411,4 +437,21 @@ void nonshortestJobFirst(std::vector<Process> &processes)
     // Printing gantt chart and results.
     printGanttChart(ganttChart);
     printResults(processes);
+}
+// Allows the use of the previous process list
+bool usePrevious(std::vector<Process> &processes){
+    // No previous process to use
+    if(processes.empty()){
+        return false;
+    }
+    cout << "Use previous process?\n 1.yes\n 2.no\n";
+    int input;
+    cin >> input;
+    if(input == 1){
+        return true;
+    }else if(input == 2){
+        return false;
+    }else{
+        return false;
+    }
 }
