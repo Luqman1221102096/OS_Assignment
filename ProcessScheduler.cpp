@@ -297,82 +297,72 @@ void nonPreemptivePriority(std::vector<Process> &processes)
 }
 void shortestRemainingTime(std::vector<Process> &processes)
 {
-    int n = processes.size();
     int time = 0;
+    int n = processes.size();
     int completed = 0;
+    int currentProcess = -1;
+    std::vector<pair<int, int>> ganttChart;
 
     // Sort processes by arrival time
     sort(processes.begin(), processes.end(), [](const Process &a, const Process &b)
          { return a.arrivalTime < b.arrivalTime; });
 
-    // Vector to store the Gantt chart (process ID, execution time)
-    vector<pair<int, int>> ganttChart;
-    int currentProcess = -1;  // Tracks the currently executing process
-    int processStartTime = 0; // Start time for the current process
-
     while (completed < n)
     {
-        int shortestRemainingIndex = -1;
-        int minRemainingTime = INT_MAX;
-
-        // Find the process with the shortest remaining time that has arrived
+        // Find the process with the shortest remaining time at the current time
+        int selectedProcess = -1;
         for (int i = 0; i < n; ++i)
         {
             if (processes[i].arrivalTime <= time && processes[i].remainingTime > 0)
             {
-                if (processes[i].remainingTime < minRemainingTime)
+                if (selectedProcess == -1 || processes[i].remainingTime < processes[selectedProcess].remainingTime)
                 {
-                    minRemainingTime = processes[i].remainingTime;
-                    shortestRemainingIndex = i;
+                    selectedProcess = i;
                 }
             }
         }
 
-        if (shortestRemainingIndex != -1)
+        if (selectedProcess != -1)
         {
-            // If the process changes, update the Gantt chart
-            if (currentProcess != shortestRemainingIndex)
+            // Execute the process for one unit of time
+            if (currentProcess != selectedProcess)
             {
-                if (currentProcess != -1)
-                {
-                    ganttChart.emplace_back(currentProcess, time - processStartTime);
-                }
-                currentProcess = shortestRemainingIndex;
-                processStartTime = time; // Update start time for the new process
+                // If the process changes, add a new entry to the Gantt chart
+                ganttChart.emplace_back(processes[selectedProcess].id, 1);
+                currentProcess = selectedProcess;
+            }
+            else
+            {
+                // Extend the last entry in the Gantt chart
+                ganttChart.back().second++;
             }
 
-            // Execute the process for 1 unit of time
-            processes[shortestRemainingIndex].remainingTime--;
+            processes[selectedProcess].remainingTime--;
             time++;
 
-            // If the process finishes, update its details
-            if (processes[shortestRemainingIndex].remainingTime == 0)
+            // If the process finishes, calculate metrics
+            if (processes[selectedProcess].remainingTime == 0)
             {
                 completed++;
-                processes[shortestRemainingIndex].finishedTime = time;
-                processes[shortestRemainingIndex].turnaroundTime = time - processes[shortestRemainingIndex].arrivalTime;
-                processes[shortestRemainingIndex].waitingTime = processes[shortestRemainingIndex].turnaroundTime - processes[shortestRemainingIndex].burstTime;
+                processes[selectedProcess].finishedTime = time;
+                processes[selectedProcess].turnaroundTime = time - processes[selectedProcess].arrivalTime;
+                processes[selectedProcess].waitingTime = processes[selectedProcess].turnaroundTime - processes[selectedProcess].burstTime;
+
+                // Ensure no negative waiting time
+                if (processes[selectedProcess].waitingTime < 0)
+                {
+                    processes[selectedProcess].waitingTime = 0;
+                }
             }
         }
         else
         {
             // If no process is ready, increment time
-            if (currentProcess != -1)
-            {
-                ganttChart.emplace_back(currentProcess, time - processStartTime);
-                currentProcess = -1;
-            }
             time++;
         }
     }
 
-    // Add the last process to the Gantt chart
-    if (currentProcess != -1)
-    {
-        ganttChart.emplace_back(currentProcess, time - processStartTime);
-    }
-
-    // Print the Gantt chart and results
+    // Print Gantt chart and results
     printGanttChart(ganttChart);
     printResults(processes);
 }
